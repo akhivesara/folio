@@ -1,0 +1,345 @@
+Portfolio = new Class.create({
+
+	//TODO: make the url configurable
+	init : function() {
+		this._myportfolio = null;		
+		var google = new GoogleScrapper();
+		google.fetch(null,$.proxy(this._onDataFetched, this)); 		
+		google.fetch(google.settledUrl,$.proxy(this._settledComplete, this))
+	},
+	
+	_settledComplete : function(data) {
+		console.log('_settledComplete');
+		this._settledmyportfolio = data;
+		data.primaryKeys.forEach(function(ticker) {
+			data.data[ticker]['gain'] = 100*((data.data[ticker].sellbasis - data.data[ticker].costbasis)/data.data[ticker].costbasis);	
+		});
+		this.createCompletedChart(this._createData(true,['symbol', 'gain'],data),'gainComplete');
+	},
+	
+	_onDataFetched : function(data) {
+		console.log('_onDataFetched');
+		var that=this;
+		this._myportfolio = data;
+		this.createTable();
+		this.createPie();
+		this.sectors = [];
+		that._myportfolio.sectors = {};
+		var count = 0;
+		var max = this._myportfolio.primaryKeys.length;
+		this._myportfolio.primaryKeys.forEach(function(ticker) {
+			scrapeIndustryLink(ticker,function(industry , sector) {
+				count++
+				if (!sector) sector = 'Unknown';
+				that._myportfolio.data[ticker]['industry'] = industry;
+				that._myportfolio.data[ticker]['sector'] = sector;				
+				if (that.sectors.indexOf(sector) ==-1) {
+					that.sectors.push(sector);
+				}
+				if (!that._myportfolio.sectors[sector]) {
+					that._myportfolio.sectors[sector] = {primaryKeys : [] , industry : []};
+				}
+				that._myportfolio.sectors[sector].primaryKeys.push(ticker);
+				that._myportfolio.sectors[sector].industry.push(industry);				
+				if (count >= max) {
+					console.log('createSectorPie');
+					that.createSectorPie();
+				}
+			})
+		});
+		count = 0;
+		window.priceCount =0;
+		this._myportfolio.primaryKeys.forEach(function(ticker) {
+			scrapePrice(ticker,function(price,change) {
+				console.log('scrapePrice call done');
+				window.priceCount++;
+				count++;
+				that._myportfolio.data[ticker]['change'] = change;
+				that._myportfolio.data[ticker]['quote'] = +price;
+				that._myportfolio.data[ticker]['gain'] = 100*((+price* +that._myportfolio.data[ticker].shares) + (+that._myportfolio.data[ticker].dividend) - that._myportfolio.data[ticker].costbasis)/that._myportfolio.data[ticker].costbasis
+				if (window.priceCount >= max) {
+					console.log('createCurrentGainChart');					
+					that.createColumnChart();
+					delete window.priceCount;
+					//that.createColumnChart(that._createData(true,['symbol' , 'change']), 'dayGainColumn',true);
+				}
+			})
+		});
+	},
+	
+	_calculateTotalGain : function(sold , primaryData) {
+		var cost = 0, sale =0  , gain=0 , that = this , primaryData = primaryData || this._myportfolio;
+		primaryData.primaryKeys.forEach(function(ticker) {
+			if (ticker != 'Overall') {
+				cost += +primaryData.data[ticker]['costbasis'];
+				if (sold) {
+					sale += +primaryData.data[ticker]['sellbasis'];					
+				} else {
+					sale += (+primaryData.data[ticker]['quote'] * + primaryData.data[ticker].shares) ;
+				}
+			}
+		});
+		gain = 100* ((sale - cost)/cost);
+		return gain;
+	},
+	
+	createTable : function() {
+		tableData = this._createData();
+		if (tableData.length > 1) {
+		  _table = $("#portfolioTable").handsontable({
+		    data: tableData
+		  });		
+		}
+	},
+	
+	_createData : function(noHeaders, keyMap , primaryData) {
+		var tableData = [] ,
+		singleEntry = [] ,
+		primaryData = primaryData || this._myportfolio ;
+		if (!noHeaders) {
+			tableData.push(primaryData.columns);
+		}
+		for (var key in primaryData.data) {
+			singleEntry = [];
+			for (var more in primaryData.data[key]) {
+				if (!keyMap) {
+					singleEntry.push(primaryData.data[key][more]);					
+				} else if (keyMap.indexOf(more) !=-1) {					
+					if (+primaryData.data[key][more]) {
+						singleEntry.push(+primaryData.data[key][more]);						
+					} else {
+						singleEntry.push(primaryData.data[key][more]);
+					}
+				}					
+			}
+			tableData.push(singleEntry);					
+		}		
+		return tableData;
+	},
+	
+	createDataObject : function(keyMap) {
+		var tableData = [] ,
+		singleEntry = {};
+		for (var key in this._myportfolio.data) {
+			singleEntry = {};
+			for (var more in this._myportfolio.data[key]) {
+				if (!keyMap) {
+					singleEntry[more] = (this._myportfolio.data[key][more]);					
+				} else if (keyMap.indexOf(more) !=-1) {					
+					if (+this._myportfolio.data[key][more]) {
+						singleEntry[more] = (+this._myportfolio.data[key][more]);						
+					} else {
+						singleEntry[more] = (this._myportfolio.data[key][more]);
+					}
+				}					
+			}
+			tableData.push(singleEntry);					
+		}		
+		return tableData;		
+	},
+	
+	createSectorPie : function() {
+//		var data = portfolio.createDataObject(['sector','costbasis','symbol']) ,
+		var data = this.createDataObject(['sector','costbasis']) ,
+		sectorData = {} ,
+		pieData = [];
+		this.sectors.forEach(function(sector) {
+			sectorData[sector] = data.filter(function(item) { return item.sector == sector })			
+		});
+		for (var d in sectorData) {
+			if (sectorData[d] && sectorData[d].length > 1) {
+				var cost=0;
+				for (var x=0;x<sectorData[d].length;x++) {
+					cost += sectorData[d][x].costbasis;
+				}
+				sectorData[d] = [{'sector':d , 'costbasis' : cost }];
+			}
+			pieData.push([sectorData[d][0].sector , sectorData[d][0].costbasis]);
+		}
+		this.createPie(pieData,'sectorPie' , 'Sector Diversification');
+	},
+	
+	createPie : function(data , elementId , title) {
+		    var chart;
+		        chart = new Highcharts.Chart({
+		            chart: {
+		                renderTo: elementId || 'portfolioPie',
+		                plotBackgroundColor: null,
+		                plotBorderWidth: null,
+		                plotShadow: false
+		            },
+		            title: {
+		                text: title || 'Stock Diversification'
+		            },
+		            tooltip: {
+						formatter : function() {
+							var sectorData = safeLookup(portfolio._myportfolio.sectors , this.key);
+							if (sectorData) {
+								return  this.point.name +': <b>'+this.point.percentage.toFixed(2) +'%</b> <br>Holdings: <b>'+sectorData.primaryKeys.toString().replace(/,/g,', ') +'</b></br><br>Industry: <b>'+sectorData.industry.toString().replace(/,/g,', ')+'</b></br>';
+							} else {
+								return  this.point.name +': <b>'+this.point.percentage.toFixed(2) +'%</b> <br>Shares: <b>'+portfolio._myportfolio.data[this.point.name].shares +'<b></br>';								
+							}
+						},
+/*
+		        	    pointFormat: '{series.name}: <b>{point.percentage}%</b> '+safeLookup(portfolio._myportfolio.sectors , 'Technology'),
+*/		
+		            	percentageDecimals: 1
+
+		            },
+		            plotOptions: {
+		                pie: {
+		                    allowPointSelect: true,
+		                    cursor: 'pointer',
+		                    dataLabels: {
+		                        enabled: true,
+		                        color: '#000000',
+		                        connectorColor: '#000000',
+		                        formatter: function() {
+//									if (name) {
+//		                            	return '<b>'+ this.point[name] +'</b>: '+ this.percentage.toFixed(1) +' %';										
+//									} else {
+		                            	return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(1) +' %';
+//									}
+		                        }
+		                    },
+		                    showInLegend: true
+		                }
+		            },
+		            series: [{
+		                type: 'pie',
+		                name: 'Own',
+		                data: data || this._createData(true,['symbol' , 'costbasis'])/*
+		                [
+		                		                    ['Firefox',   45.0],
+		                		                    ['IE',       26.8],
+		                		                    {
+		                		                        name: 'Chrome',
+		                		                        y: 12.8,
+		                		                        sliced: true,
+		                		                        selected: true
+		                		                    },
+		                		                    ['Safari',    8.5],
+		                		                    ['Opera',     6.2],
+		                		                    ['Others',   0.7]
+		                		                ]*/
+		                
+		            }]
+		        });		
+	},
+	
+	createColumnChart : function(data , elementId , avoidOverall ) {
+		    var chart ,
+				data = data || this._createData(true,['symbol' , 'gain']) ,
+				keys = this._myportfolio.primaryKeys ;
+				if (!avoidOverall) {
+					data.push(['Overall' , this._calculateTotalGain()]);
+					keys.push('Overall');
+				}
+		        chart = new Highcharts.Chart({
+		            chart: {
+		                renderTo: elementId || 'gainColumn',
+		                type: 'column'
+		            },
+		            title: {
+		                text: 'Current Gain Chart'
+		            },
+		            xAxis: {
+		                categories: keys		                
+		            },
+		            yAxis: {
+		                title: {
+		                    text: 'Percentage (%)'
+		                }
+		            },
+		            tooltip: {
+		                formatter: function() {
+							var tooltip = this.x +': '+ this.y.toFixed(2) +' %';
+							if (this.point.name == 'Overall') {
+								//tooltip+= '<br><br> Gain: '+portfolio._settledmyportfolio.data[this.point.name].sellbasis - portfolio._settledmyportfolio.data[this.point.name].costbasis + '<b></br>'								
+							} else {
+								tooltip+= '<br><b>Gain: $'+((portfolio._myportfolio.data[this.point.name].shares * portfolio._myportfolio.data[this.point.name].quote)- portfolio._myportfolio.data[this.point.name].costbasis).toFixed(2) + '</b></br>'
+							}
+		                    return tooltip;
+		                }
+		            },
+		            plotOptions: {
+		                column: {
+		                    pointPadding: 0.2,
+		                    borderWidth: 0
+		                },
+		            },
+	                series: [{
+						name : 'Total',						
+		                data: data
+		            },
+						{
+							name : 'Day',
+							data : this._createData(true,['symbol' , 'change'])
+						}
+					]
+		        });
+		//chart.legend.destroy();
+		if (!avoidOverall) {
+			keys.pop();
+		}		
+	},
+	
+	createCompletedChart : function(data , elementId , avoidOverall ) {
+		    var chart ,
+				data = data ,
+				keys = this._settledmyportfolio.primaryKeys ;
+				if (!avoidOverall) {
+					data.push(['Overall' , this._calculateTotalGain(true , this._settledmyportfolio)]);
+					keys.push('Overall');
+				}
+		        chart = new Highcharts.Chart({
+		            chart: {
+		                renderTo: elementId || 'gainColumn',
+		                type: 'column'
+		            },
+		            title: {
+		                text: 'Closed Positions'
+		            },
+		            xAxis: {
+		                categories: keys		                
+		            },
+		            yAxis: {
+		                title: {
+		                    text: 'Percentage (%)'
+		                }
+		            },
+		            tooltip: {
+		                formatter: function() {
+							var tooltip = this.x +': '+ this.y.toFixed(2) +' %';
+							if (this.point.name == 'Overall') {
+								//tooltip+= '<br><br> Gain: '+portfolio._settledmyportfolio.data[this.point.name].sellbasis - portfolio._settledmyportfolio.data[this.point.name].costbasis + '<b></br>'								
+							} else {
+								tooltip+= '<br><b>Gain: $'+(portfolio._settledmyportfolio.data[this.point.name].sellbasis - portfolio._settledmyportfolio.data[this.point.name].costbasis).toFixed(2) + '</b></br>'
+							}
+
+		                    return tooltip;
+
+		                }
+		            },
+		            plotOptions: {
+		                column: {
+		                    pointPadding: 0.2,
+		                    borderWidth: 0
+		                },
+		            },
+	                series: [{
+						name : 'Total',
+		                data: data
+		            }]
+		        });
+		//chart.legend.destroy();
+		if (!avoidOverall) {
+			keys.pop();
+		}
+		
+	}
+	
+	
+	
+	
+})

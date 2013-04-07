@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="target-densitydpi=medium-dpi,width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta names="apple-mobile-web-app-status-bar-style" content="black" />
+	<meta name="format-detection" content="telephone=no" />
+    <title>Portfolio Analyzer</title>
+    <link rel="stylesheet" type="text/css" href="portfolio.css" media="screen" />
+	<link rel="stylesheet" media="screen" href="lib/jquery.handsontable.full.css">
+</head>
+
+<body style="background:#333;">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="lib/Class.js"></script>
+<script src="lib/yqlscrapper.js"></script>
+<script src="lib/gdocscrapper.js"></script>
+<script src="lib/highcharts.js"></script>
+<script src="lib/jquery.handsontable.full.js"></script>
+<script src="util.js"></script>
+<script src="news.js"></script>
+<script src="lib/date.js"></script>
+<script src="lib/amplify.js"></script>
+<script src="portfolio.js"></script>
+
+<div id='content'>
+		<button xid='refresh' onclick='refresh()'>Refresh</button>
+		<div id='portfolioTable' style='margin-bottom:50px' class='hide'></div>
+		<div id='dayGainColumn' style='margin-bottom:50px'></div>						
+		<div id='gainColumn' style='margin-bottom:50px'></div>				
+		<div id='portfolioPie' style='margin-bottom:50px'></div>
+		<div id='sectorPie' style='margin-bottom:50px'></div>
+		<div id='gainComplete' style='margin-bottom:50px'></div>								
+</div>
+
+<script>
+$(document).ready(function() {
+	portfolio = new Portfolio();
+	hour = new Date().getHours();
+	news = new util.News();
+});	
+refresh = function() {
+	amplify.clear();
+	window.location = location.href;
+}
+</script>
+
+</body>
+</html>
+
+
