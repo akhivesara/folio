@@ -85,9 +85,9 @@ var myTable = (function() {
             primaryKeys.forEach(function(ticker) {
                 var data = folioData[ticker];
                 that.fillSlot(rowIndex,0,ticker);
-                that.fillSlot(rowIndex,1,data.quote);
+                that.fillSlot(rowIndex,1,+data.quote);
                 that.fillSlot(rowIndex,2,(+data.change).toFixed(2));
-                that.fillSlot(rowIndex,3,data.shares);
+                that.fillSlot(rowIndex,3,+data.shares);
                 //that.fillSlot(rowIndex,4,(+data.change).toFixed(2));
                 that.fillSlot(rowIndex,4,(+data.gain).toFixed(2));
                 that.fillSlot(rowIndex,5,(+data.aft_quote).toFixed(2));
