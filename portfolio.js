@@ -2,10 +2,15 @@ Portfolio = new Class.create({
 
 	//TODO: make the url configurable
 	init : function() {
+        var that = this;
 		this._myportfolio = null;		
 		var google = new GoogleScrapper();
 		google.fetch(null,$.proxy(this._onDataFetched, this)); 		
-		google.fetch(google.settledUrl,$.proxy(this._settledComplete, this))
+		google.fetch(google.settledUrl,$.proxy(this._settledComplete, this));
+        setTimeout(function() {
+            that.getEarningsDates(myTable.create.bind(myTable))
+        },1000)
+
 	},
 	
 	_settledComplete : function(data) {
@@ -50,12 +55,15 @@ Portfolio = new Class.create({
 		count = 0;
 		window.priceCount =0;
 		this._myportfolio.primaryKeys.forEach(function(ticker) {
-			scrapePrice(ticker,function(price,change) {
-				console.log('scrapePrice call done');
+			scrapePrice(ticker,function(price,change,price_aft,change_aft) {
+				//console.log('scrapePrice call done');
 				window.priceCount++;
 				count++;
 				that._myportfolio.data[ticker]['change'] = change;
 				that._myportfolio.data[ticker]['quote'] = +price;
+                that._myportfolio.data[ticker]['aft_change'] = change_aft;
+                that._myportfolio.data[ticker]['aft_quote'] = +price_aft;
+
 				that._myportfolio.data[ticker]['gain'] = 100*((+price* +that._myportfolio.data[ticker].shares) + (+that._myportfolio.data[ticker].dividend) - that._myportfolio.data[ticker].costbasis)/that._myportfolio.data[ticker].costbasis
 				if (window.priceCount >= max) {
 					console.log('createCurrentGainChart');					
@@ -266,7 +274,7 @@ Portfolio = new Class.create({
 		                column: {
 		                    pointPadding: 0.2,
 		                    borderWidth: 0
-		                },
+		                }
 		            },
 	                series: [{
 						name : 'Total',						
@@ -325,7 +333,7 @@ Portfolio = new Class.create({
 		                column: {
 		                    pointPadding: 0.2,
 		                    borderWidth: 0
-		                },
+		                }
 		            },
 	                series: [{
 						name : 'Total',
@@ -336,8 +344,107 @@ Portfolio = new Class.create({
 		if (!avoidOverall) {
 			keys.pop();
 		}
-		
-	}
+	},
+
+    //scrapper.scrape('http://finance.yahoo.com/q/ks?s=AAPL+Key+Statistics',null, '//*[@class="yfnc_datamodoutline1"]')
+
+    getEarningsDates : function(callback) {
+        callback = callback || NOOP;
+        var baseUrl = 'http://finance.yahoo.com/q?s=INVN' ,
+            xpath = '//*[@id="yfi_quote_summary_data"]' ,
+        fns = []  ,
+            that = this;
+
+        //baseUrl.replace(/INFY/g,ticker.toUpperCase());
+        var getEstimates = function() {
+            var len = portfolio._myportfolio.primaryKeys.length ,
+                p =0 ,
+               // fns = [] ,
+                fnsString;
+            for(;p<len;p++) {
+                fns.push(
+                    $.ajax({
+                        type: "GET",
+                        url: scrapper.buildScrapeUrl('http://finance.yahoo.com/q?s='+portfolio._myportfolio.primaryKeys[p],xpath)
+                    })
+                )
+            }
+        //    return
+
+        }
+
+        getEstimates();
+        var parseEarningsEstimate = function(results) {
+            var date = _findValue(results.div.table[0].tr , "Next Earnings Date" , "th.p" , "td.p.content");
+            return date;
+        }
+
+        var parseDividendYield = function(results) {
+            var dy = _findValue(results.div.table[1].tr , "Div & Yield" , "th.p" , "td.p");
+            return dy ;
+        }
+
+        var doneCallback = function() {
+            var len , i  , json , sortedDates=[];
+            if (arguments && (len=arguments.length)) {
+                for (i=0 ; i<len ; i++) {
+                    json = $.isArray(arguments[i]) ? arguments[i] : null;
+                    json = $.isArray(json) ? json[0] : null;
+                    if (typeof json === "object" && json.query && json.query.results) {
+                        // we have a json object with an array of company info, cache it, and display suggestions
+                        var results = json.query.results;
+                        //console.log(results);
+                        var url = $.isArray(json.query.diagnostics.url) ?  json.query.diagnostics.url[0] : json.query.diagnostics.url;
+                        var ticker = url.content.split('=')[url.content.split('=').length -1];
+                        var date = parseEarningsEstimate(results) , daysToGo = undefined , d;
+                        if (date) {
+                            date = date.trim();
+                            d = Date.parse(date);
+                            daysToGo = (d - Date.today())/(24*60*60*1000);
+                            //console.log(ticker + '\'s Earning\'s Date = '+date + ' Days to go = '+that.getDaysForEarnings(date));
+                            portfolio._myportfolio.data[ticker]['Earnings'] = date;
+                            sortedDates.push([ticker,d,daysToGo]);
+                            sortedDates.sort(function(a, b) {return a[1] - b[1]})
+                        }
+                        var divYield = parseDividendYield(results) ;
+                        portfolio._myportfolio.data[ticker]['yield'] = divYield;
+                    }
+
+                }
+                //console.log(sortedDates);
+                sortedDates.forEach(function(t) {
+                    console.log(t[0] + '\'s Earning\'s Date = '+t[1].toString('d-MMM-yy') + ' Days to go = '+t[2]);
+                })
+                callback();
+            }
+/*
+            for(var x=0; x < portfolio._myportfolio.primaryKeys.length  ; x++) {
+                var date = dates[x] , daysToGo = undefined , d;
+                if (date) {
+                    d = Date.parse(date);
+                    daysToGo = (d - Date.today())/(24*60*60*1000);
+                    console.log(portfolio._myportfolio.primaryKeys[x] + '\'s Earning\'s Date = '+date + ' Days to go = '+that.getDaysForEarnings(date));
+                }
+                portfolio._myportfolio.data[portfolio._myportfolio.primaryKeys[x]]['Earnings'] = date;
+            }
+*/
+        }
+        $.when.apply(this, fns).done(doneCallback)
+    } ,
+
+    getDaysForEarnings : function(earnings) {
+        var date = earnings , daysToGo = undefined , d;
+        if (date) {
+            d = Date.parse(date);
+            daysToGo = (d - Date.today())/(24*60*60*1000);
+            //console.log('Days to go = '+daysToGo);
+        }
+        return daysToGo;
+    }
+
+
+
+
 	
 	
 	
