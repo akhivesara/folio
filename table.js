@@ -63,7 +63,7 @@ var myTable = (function() {
                         case 1:
                             return "<b>Price</b>";
                         case 2:
-                            return "<b>Change</b>";
+                            return "<b>Change %</b>";
                         case 3:
                             return "<b>Shares</b>";
                         case 4:
