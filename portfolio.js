@@ -26,7 +26,7 @@ Portfolio = new Class.create({
 		console.log('_onDataFetched');
 		var that=this;
 		this._myportfolio = data;
-        $(document).trigger('portfolioReady');
+
 		this.createTable();
 		this.createPie();
 		this.sectors = [];
@@ -65,8 +65,9 @@ Portfolio = new Class.create({
                 that._myportfolio.data[ticker]['aft_change'] = change_aft;
                 that._myportfolio.data[ticker]['aft_quote'] = +price_aft;
 
-				that._myportfolio.data[ticker]['gain'] = 100*((+price* +that._myportfolio.data[ticker].shares) + (+that._myportfolio.data[ticker].dividend) - that._myportfolio.data[ticker].costbasis)/that._myportfolio.data[ticker].costbasis
+				that._myportfolio.data[ticker]['gain'] = 100*((+price* +that._myportfolio.data[ticker].shares) + (+that._myportfolio.data[ticker].dividend) - that._myportfolio.data[ticker].costbasis)/that._myportfolio.data[ticker].costbasis;
 				if (window.priceCount >= max) {
+                    $(document).trigger('portfolioReady');
 					console.log('createCurrentGainChart');					
 					that.createColumnChart();
 					delete window.priceCount;
