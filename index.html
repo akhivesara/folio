@@ -43,10 +43,10 @@
 
 <script>
 $(document).ready(function() {
+    scrapper = new Scrapper();
 	portfolio = new Portfolio();
 	hour = new Date().getHours();
 	news = new util.News();
-    scrapper = new Scrapper();
 });	
 refresh = function() {
 	amplify.clear();

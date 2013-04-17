@@ -3,13 +3,13 @@ Portfolio = new Class.create({
 	//TODO: make the url configurable
 	init : function() {
         var that = this;
+        $(document).on('portfolioReady' , function() {
+            that.getEarningsDates(myTable.create.bind(myTable))
+        });
 		this._myportfolio = null;		
 		var google = new GoogleScrapper();
 		google.fetch(null,$.proxy(this._onDataFetched, this)); 		
 		google.fetch(google.settledUrl,$.proxy(this._settledComplete, this));
-        setTimeout(function() {
-            that.getEarningsDates(myTable.create.bind(myTable))
-        },1000)
 
 	},
 	
@@ -26,6 +26,7 @@ Portfolio = new Class.create({
 		console.log('_onDataFetched');
 		var that=this;
 		this._myportfolio = data;
+        $(document).trigger('portfolioReady');
 		this.createTable();
 		this.createPie();
 		this.sectors = [];
@@ -357,7 +358,7 @@ Portfolio = new Class.create({
 
         //baseUrl.replace(/INFY/g,ticker.toUpperCase());
         var getEstimates = function() {
-            var len = portfolio._myportfolio.primaryKeys.length ,
+            var len = this._myportfolio.primaryKeys.length ,
                 p =0 ,
                // fns = [] ,
                 fnsString;
@@ -365,7 +366,7 @@ Portfolio = new Class.create({
                 fns.push(
                     $.ajax({
                         type: "GET",
-                        url: scrapper.buildScrapeUrl('http://finance.yahoo.com/q?s='+portfolio._myportfolio.primaryKeys[p],xpath)
+                        url: scrapper.buildScrapeUrl('http://finance.yahoo.com/q?s='+this._myportfolio.primaryKeys[p],xpath)
                     })
                 )
             }
@@ -373,7 +374,7 @@ Portfolio = new Class.create({
 
         }
 
-        getEstimates();
+        getEstimates.call(this);
         var parseEarningsEstimate = function(results) {
             var date = _findValue(results.div.table[0].tr , "Next Earnings Date" , "th.p" , "td.p.content");
             return date;
@@ -440,6 +441,35 @@ Portfolio = new Class.create({
             //console.log('Days to go = '+daysToGo);
         }
         return daysToGo;
+    },
+
+    getInsiderMonkey : function(ticker) {
+        scrapper.scrape('http://www.insidermonkey.com/search/all?x=7&y=11&q='+ticker, function(results) {
+            var div = results.div;
+            var url = div.a.href;
+            var hedgeUrl = url+'/hedge-funds/#/';
+            scrapper.scrape(hedgeUrl, function(results) {
+                debugger;
+                var table = results.table.tbody.tr;
+                var primaryKeys = [];
+                var data = [];
+                for (var x=0 ; x<results.table.tr.th.length;x++) {
+                    primaryKeys.push(results.table.tr.th[x].p);
+                }
+                for (var x=0;x<table.length;x++) {
+                    var item = table[x].td;
+                    data[x] = {};
+                    data[x][primaryKeys[0]] = item[0].p;
+                    data[x][primaryKeys[1]] = {fund:item[1].div.a.content , link : item[1].div.a.href , manager:item[1].div.p};
+                    data[x][primaryKeys[2]] = item[2].p;
+                    data[x][primaryKeys[3]] = item[3].p;
+                    data[x][primaryKeys[4]] = safeLookup(item[4], 'p.content');
+                    data[x][primaryKeys[5]] = item[5].p;
+                }
+                console.dir(data)
+                portfolio._myportfolio.data[ticker]['hedge'] = data;
+            }, '//*[@id="stock-holdings-table"]')
+        } , '//*[@class="result"]')
     }
 
 
