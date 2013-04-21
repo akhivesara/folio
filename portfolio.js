@@ -467,10 +467,94 @@ Portfolio = new Class.create({
                     data[x][primaryKeys[4]] = safeLookup(item[4], 'p.content');
                     data[x][primaryKeys[5]] = item[5].p;
                 }
-                console.dir(data)
+                console.dir(data);
                 portfolio._myportfolio.data[ticker]['hedge'] = data;
             }, '//*[@id="stock-holdings-table"]')
         } , '//*[@class="result"]')
+    },
+
+    getPrice : function(ticker , callback , afterhours , force) {
+        callback = callback || NOOP;
+        var url = 'http://www.nasdaq.com/symbol/'+ticker.toLowerCase();
+        if (afterhours) {
+            url = url+'/after-hours';
+        } else {
+            url = url+'/real-time';
+        }
+        scrapper.scrape(url,function(results) {
+            var data , sData;
+            var price = _findValue(results.div.div,"qwidget_lastsale",'id','p');
+            if (price) {
+                price = price.split('$')[1];
+            }
+            var net_change = _findValue(results.div.div,"qwidget_netchange",'id','p');
+            var net_change_percent = _findValue(results.div.div,"qwidget_percent",'id','p');
+            var dir = _findValue(results.div.div,"qwidget-Red",'class','class') ;
+            if (dir) {
+                dir = -1;
+                net_change = net_change * dir;
+                net_change_percent = parseFloat(net_change_percent) * dir;
+            }
+            data = {
+                price : price,
+                change : net_change,
+                change_percent : net_change_percent,
+                up : dir !== -1
+            }
+
+            if ((sData=safeLookup(portfolio , '_myportfolio.data.ticker'))) {
+                if (afterhours) {
+                    sData.afterData = data;
+                } else {
+                   sData.liveData = data;
+                }
+
+           } else {
+               if (!window.stocks) {
+                   window.stocks = {};
+               }
+                if (!window.stocks[ticker]) {
+                    window.stocks[ticker] = {};
+                }
+                if (afterhours) {
+                    window.stocks[ticker].afterData = data;
+                } else {
+                    window.stocks[ticker].liveData = data;
+                }
+           }
+            callback(data);
+            console.dir(data)
+        },'//*[@id="qwidget_quote"]',force);
+
+    },
+
+    priceUpdater : function() {
+        var rows = $('#folio').handsontable('countRows') ,
+            ticker , afterhours , folio , hour = Date.now().getHours();
+        for (var i=0;i<rows;i++) {
+
+            afterhours = hour >= 13 || hour <= 6 || Date.now().getDayName() === 'Sunday' || Date.now().getDayName() === 'Saturday';
+            ticker = $('#folio').handsontable('getDataAtCell' , i,0);
+            this.getPrice(ticker , (function(rowIdx , tick) {return function(data) {
+                folio = portfolio._myportfolio.data[tick];
+                console.log('callback row ='+rowIdx);
+                if (afterhours) {
+                    //data = data.afterData;
+                    myTable.fillSlot(rowIdx,5,(+data.price).toFixed(2));
+                } else {
+                    console.log(tick + ' price is ='+data.price);
+                    //data = data.liveData;
+                    myTable.fillSlot(rowIdx,1,(+data.price).toFixed(2));
+                    myTable.fillSlot(rowIdx,2,(+data.change_percent).toFixed(2));
+                    //that.fillSlot(rowIndex,4,(+data.change).toFixed(2));
+                    var gain = 100*(((+data.price * +folio.shares) - folio.costbasis)/folio.costbasis);
+                    console.log(tick + ' gain is ='+gain);
+                    myTable.fillSlot(rowIdx,4,(gain).toFixed(2));
+                }
+
+            }})(i, ticker), afterhours,true)
+
+        }
     }
 
 

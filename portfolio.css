@@ -1,7 +1,13 @@
 .hide {
-	display:none
+	display:none;
 }
 
 .show {
-	display:block
+	display:block;
+}
+
+.btn {
+    width:70px;
+    height: 30px;
+    margin: 10px 40px 10px 30px;
 }

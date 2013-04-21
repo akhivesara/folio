@@ -31,7 +31,8 @@
 
 
 <div id='content'>
-		<button xid='refresh' onclick='refresh()'>Refresh</button>
+        <button xid='Update' onclick='updater()' class="btn">Update</button>
+		<button xid='Reload' onclick='refresh()' class='btn'>Reload</button>
         <div id='folio'></div>
 		<div id='portfolioTable' style='margin-bottom:50px' class='hide'></div>
 		<div id='dayGainColumn' style='margin-bottom:50px'></div>						
@@ -51,6 +52,12 @@ $(document).ready(function() {
 refresh = function() {
 	amplify.clear();
 	window.location = location.href;
+}
+
+updater = function() {
+    if (portfolio) {
+        portfolio.priceUpdater();
+    }
 }
 </script>
 
