@@ -522,7 +522,7 @@ Portfolio = new Class.create({
             ticker , afterhours , folio , hour = Date.now().getHours();
         for (var i=0;i<rows;i++) {
 
-            afterhours = hour >= 13 || hour <= 6 || Date.now().getDayName() === 'Sunday' || Date.now().getDayName() === 'Saturday';
+            afterhours = !isMarketOpen();
             ticker = $('#folio').handsontable('getDataAtCell' , i,0);
             this.getPrice(ticker , (function(rowIdx , tick) {return function(data) {
                 folio = portfolio._myportfolio.data[tick];

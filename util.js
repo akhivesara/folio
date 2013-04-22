@@ -23,6 +23,13 @@ function isArray (obj) {
    }
 }
 
+function isMarketOpen() {
+    var now = Date.now() ,
+        hour = now.getHours() ,
+        day = now.getDayName();
+    return !(hour >= 13 || hour <= 6 || day === 'Sunday' || day === 'Saturday');
+}
+
 Array.prototype.merge = function() {
     var results = [];
     this.forEach(function(subArray) {

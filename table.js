@@ -119,11 +119,6 @@ var myTable = (function() {
         },
 
         negativeValueRenderer : function(instance, td, row, col, prop, value, cellProperties) {
-/*
-            if (cellProperties.readOnly) {
-                td.style.opacity = 0.7;
-            }
-*/
 
             if (!value || value == 'NaN' || value == 'N/A') {
                 value='';
