@@ -419,17 +419,6 @@ Portfolio = new Class.create({
                 })
                 callback();
             }
-/*
-            for(var x=0; x < portfolio._myportfolio.primaryKeys.length  ; x++) {
-                var date = dates[x] , daysToGo = undefined , d;
-                if (date) {
-                    d = Date.parse(date);
-                    daysToGo = (d - Date.today())/(24*60*60*1000);
-                    console.log(portfolio._myportfolio.primaryKeys[x] + '\'s Earning\'s Date = '+date + ' Days to go = '+that.getDaysForEarnings(date));
-                }
-                portfolio._myportfolio.data[portfolio._myportfolio.primaryKeys[x]]['Earnings'] = date;
-            }
-*/
         }
         $.when.apply(this, fns).done(doneCallback)
     } ,

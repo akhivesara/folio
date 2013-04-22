@@ -11,3 +11,15 @@
     height: 30px;
     margin: 10px 40px 10px 30px;
 }
+
+.negative {
+    color: red;
+}
+
+.positive {
+    color: green;
+}
+
+.target {
+    background-color: green !important;
+}

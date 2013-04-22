@@ -38,7 +38,7 @@ var myTable = (function() {
                 columnSorting:true ,
                 colHeaders: true,
                 columns: [
-                    {},  // ticker
+                    {type:'numeric'},  // ticker
                     {type: 'numeric'}, // price
                     {type: 'numeric'},  // change
                     {type: 'numeric'},  //shares
@@ -79,6 +79,16 @@ var myTable = (function() {
                         case 8:
                             return "<b>Price Target</b>";
                     }
+                },
+                cells: function (row, col, prop) {
+                    var cellProperties = {};
+                    if (col === 0 || _table.handsontable('getData')[row][col] === 'readOnly') {
+                        cellProperties.readOnly = true; //make cell read-only if it is first row or the text reads 'readOnly'
+                    }
+                    cellProperties.type = {
+                        renderer: that.negativeValueRenderer
+                    }
+                    return cellProperties;
                 }
             });
 
@@ -106,6 +116,60 @@ var myTable = (function() {
 
         fillSlot : function(row,col,value) {
             $(tableId).handsontable('setDataAtCell', row, col, value);
+        },
+
+        negativeValueRenderer : function(instance, td, row, col, prop, value, cellProperties) {
+/*
+            if (cellProperties.readOnly) {
+                td.style.opacity = 0.7;
+            }
+*/
+
+            if (!value || value == 'NaN' || value == 'N/A') {
+                value='';
+                td.style.background = '#EEE';
+            }
+
+            if (col === 1 || col === 3 || col === 6 || col === 7) {
+                Handsontable.TextCell.renderer.apply(this, arguments);
+                return;
+            }
+            if (col === 0) {
+                td.style['font-weight'] = 'bold';
+                td.style['font-style'] = 'italic';
+                Handsontable.TextCell.renderer.apply(this, arguments);
+                return;
+            }
+            if (col === 5) {
+                var lastQuote = _table.handsontable('getData')[row][1];
+                if (value < lastQuote) {
+                    td.className = 'negative'; //add class "negative"
+                } else if (value > lastQuote) {
+                    td.className = 'positive';
+                }
+                Handsontable.TextCell.renderer.apply(this, arguments);
+                return;
+            }
+
+            if (col === 8) {
+                var lastQuote = _table.handsontable('getData')[row][1];
+                var afterQuote = _table.handsontable('getData')[row][5];
+                if (value) {
+                    if (+value <= +lastQuote || +value<=+afterQuote) {
+                        td.className = 'target';
+                    }
+                }
+                Handsontable.TextCell.renderer.apply(this, arguments);
+                return;
+            }
+
+            if (value < 0) { //if row contains negative number
+                td.className = 'negative'; //add class "negative"
+            } else {
+                td.className = 'positive';
+            }
+
+            Handsontable.TextCell.renderer.apply(this, arguments);
         }
     }
 })();
