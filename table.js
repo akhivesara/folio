@@ -136,19 +136,22 @@ var myTable = (function() {
                 return;
             }
             if (col === 5) {
-                var lastQuote = _table.handsontable('getData')[row][1];
+
+                var lastQuote = _table.handsontable('getCell', row, 1).textContent //|| _table.handsontable('getData')[row][1];
                 if (value < lastQuote) {
                     td.className = 'negative'; //add class "negative"
+                    Handsontable.TextCell.renderer.apply(this, arguments);
                 } else if (value > lastQuote) {
                     td.className = 'positive';
+                    Handsontable.TextCell.renderer.apply(this, arguments);
                 }
-                Handsontable.TextCell.renderer.apply(this, arguments);
+
                 return;
             }
 
             if (col === 8) {
-                var lastQuote = _table.handsontable('getData')[row][1];
-                var afterQuote = _table.handsontable('getData')[row][5];
+                var lastQuote = _table.handsontable('getCell', row, 1).textContent  //|| _table.handsontable('getData')[row][1];
+                var afterQuote = _table.handsontable('getCell', row, 5).textContent //|| _table.handsontable('getData')[row][5];
                 if (value) {
                     if (+value <= +lastQuote || +value<=+afterQuote) {
                         td.className = 'target';

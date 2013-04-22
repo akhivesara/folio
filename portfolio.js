@@ -534,7 +534,7 @@ Portfolio = new Class.create({
                     console.log(tick + ' price is ='+data.price);
                     //data = data.liveData;
                     myTable.fillSlot(rowIdx,1,(+data.price).toFixed(2));
-                    myTable.fillSlot(rowIdx,2,(+data.change_percent).toFixed(2));
+                    myTable.fillSlot(rowIdx,2,(parseFloat(data.change_percent)).toFixed(2));
                     //that.fillSlot(rowIndex,4,(+data.change).toFixed(2));
                     var gain = 100*(((+data.price * +folio.shares) - folio.costbasis)/folio.costbasis);
                     console.log(tick + ' gain is ='+gain);
