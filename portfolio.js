@@ -433,13 +433,12 @@ Portfolio = new Class.create({
         return daysToGo;
     },
 
-    getInsiderMonkey : function(ticker) {
+    getInsiderMonkey : function(ticker,isFund) {
         scrapper.scrape('http://www.insidermonkey.com/search/all?x=7&y=11&q='+ticker, function(results) {
             var div = results.div;
-            var url = div.a.href;
-            var hedgeUrl = url+'/hedge-funds/#/';
+            var url = !isFund ? safeLookup(div, 'a.href') || safeLookup(div , '0.a.href') : div[div.length - 1].a.href;
+            var hedgeUrl = isFund ? url : url+'/hedge-funds/#/';
             scrapper.scrape(hedgeUrl, function(results) {
-                debugger;
                 var table = results.table.tbody.tr;
                 var primaryKeys = [];
                 var data = [];
@@ -457,7 +456,9 @@ Portfolio = new Class.create({
                     data[x][primaryKeys[5]] = item[5].p;
                 }
                 console.dir(data);
-                portfolio._myportfolio.data[ticker]['hedge'] = data;
+                if (portfolio._myportfolio.data[ticker]) {
+                    portfolio._myportfolio.data[ticker]['hedge'] = data;
+                }
             }, '//*[@id="stock-holdings-table"]')
         } , '//*[@class="result"]')
     },
