@@ -84,9 +84,15 @@ var myTable = (function() {
                     var cellProperties = {};
                     if (col === 0 || _table.handsontable('getData')[row][col] === 'readOnly') {
                         cellProperties.readOnly = true; //make cell read-only if it is first row or the text reads 'readOnly'
-                    }
-                    cellProperties.type = {
-                        renderer: that.negativeValueRenderer
+                        if (col === 0) {
+                            cellProperties.type = {
+                                renderer: that.tickerRenderer
+                            }
+                        }
+                    } else {
+                        cellProperties.type = {
+                            renderer: that.negativeValueRenderer
+                        }
                     }
                     return cellProperties;
                 }
@@ -94,7 +100,8 @@ var myTable = (function() {
 
             primaryKeys.forEach(function(ticker) {
                 var data = folioData[ticker];
-                that.fillSlot(rowIndex,0,ticker);
+                var u = 'http://ashishkhivesara.com/finance?s='+ticker;
+                that.fillSlot(rowIndex,0,"<a href='"+u+"' target='_blank'>"+ticker+"</a>");
                 that.fillSlot(rowIndex,1,+data.quote);
                 that.fillSlot(rowIndex,2,(+data.change).toFixed(2));
                 that.fillSlot(rowIndex,3,+data.shares);
@@ -116,6 +123,13 @@ var myTable = (function() {
 
         fillSlot : function(row,col,value) {
             $(tableId).handsontable('setDataAtCell', row, col, value);
+        },
+
+        tickerRenderer : function (instance, td, row, col, prop, value, cellProperties) {
+            var escaped = Handsontable.helper.stringify(value);
+            escaped = strip_tags(escaped, '<a>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
+            td.innerHTML = escaped;
+            return td;
         },
 
         negativeValueRenderer : function(instance, td, row, col, prop, value, cellProperties) {

@@ -94,7 +94,7 @@ Portfolio = new Class.create({
 	},
 	
 	createTable : function() {
-		tableData = this._createData();
+		var tableData = this._createData();
 		if (tableData.length > 1) {
 		  _table = $("#portfolioTable").handsontable({
 		    data: tableData
