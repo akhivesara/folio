@@ -520,11 +520,13 @@ Portfolio = new Class.create({
 
     priceUpdater : function() {
         var rows = $('#folio').handsontable('countRows') ,
-            ticker , afterhours , folio , hour = Date.now().getHours();
+        regEx , ticker , afterhours , folio , hour = Date.now().getHours();
         for (var i=0;i<rows;i++) {
 
             afterhours = !isMarketOpen();
             ticker = $('#folio').handsontable('getDataAtCell' , i,0);
+            regEx = new RegExp(/.*>([A-Z]+)<\/a>/i);
+            ticker = regEx.exec(ticker)[1];
             this.getPrice(ticker , (function(rowIdx , tick) {return function(data) {
                 folio = portfolio._myportfolio.data[tick];
                 console.log('callback row ='+rowIdx);
