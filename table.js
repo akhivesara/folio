@@ -63,13 +63,11 @@ var myTable = (function() {
                         case 1:
                             return "<b>Price</b>";
                         case 2:
-                            return "<b>Change %</b>";
+                            return "<b>%</b>";
                         case 3:
                             return "<b>Shares</b>";
                         case 4:
-                        //    return "<b>Day\'s Gain</b>";
-                        //case 5:
-                            return "<b>Overall Gain %</b>";
+                            return "<b>Gain %</b>";
                         case 5:
                             return "<b>After Hour\'s</b>";
                         case 6:
