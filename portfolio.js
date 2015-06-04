@@ -2,12 +2,13 @@ Portfolio = new Class.create({
 
 	//TODO: make the url configurable
 	init : function() {
-        var that = this;
+        var that = this,
+            google;
         $(document).on('portfolioReady' , function() {
             that.getEarningsDates(myTable.create.bind(myTable))
         });
 		this._myportfolio = null;		
-		var google = new GoogleScrapper();
+		google = new GoogleScrapper();
 		google.fetch(null,$.proxy(this._onDataFetched, this)); 		
 		google.fetch(google.settledUrl,$.proxy(this._settledComplete, this));
 
@@ -78,7 +79,11 @@ Portfolio = new Class.create({
 	},
 	
 	_calculateTotalGain : function(sold , primaryData) {
-		var cost = 0, sale =0  , gain=0 , that = this , primaryData = primaryData || this._myportfolio;
+		var cost = 0,
+            sale =0,
+            gain,
+            primaryData = primaryData || this._myportfolio;
+
 		primaryData.primaryKeys.forEach(function(ticker) {
 			if (ticker != 'Overall') {
 				cost += +primaryData.data[ticker]['costbasis'];
@@ -103,15 +108,18 @@ Portfolio = new Class.create({
 	},
 	
 	_createData : function(noHeaders, keyMap , primaryData) {
-		var tableData = [] ,
-		singleEntry = [] ,
-		primaryData = primaryData || this._myportfolio ;
+		var tableData = [],
+		singleEntry,
+        more,
+        key,
+		primaryData = primaryData || this._myportfolio;
+
 		if (!noHeaders) {
 			tableData.push(primaryData.columns);
 		}
-		for (var key in primaryData.data) {
+		for (key in primaryData.data) {
 			singleEntry = [];
-			for (var more in primaryData.data[key]) {
+			for (more in primaryData.data[key]) {
 				if (!keyMap) {
 					singleEntry.push(primaryData.data[key][more]);					
 				} else if (keyMap.indexOf(more) !=-1) {					
@@ -128,11 +136,14 @@ Portfolio = new Class.create({
 	},
 	
 	createDataObject : function(keyMap) {
-		var tableData = [] ,
-		singleEntry = {};
-		for (var key in this._myportfolio.data) {
+		var tableData = [],
+		singleEntry,
+        keu,
+        more;
+
+		for (key in this._myportfolio.data) {
 			singleEntry = {};
-			for (var more in this._myportfolio.data[key]) {
+			for (more in this._myportfolio.data[key]) {
 				if (!keyMap) {
 					singleEntry[more] = (this._myportfolio.data[key][more]);					
 				} else if (keyMap.indexOf(more) !=-1) {					
@@ -150,16 +161,20 @@ Portfolio = new Class.create({
 	
 	createSectorPie : function() {
 //		var data = portfolio.createDataObject(['sector','costbasis','symbol']) ,
-		var data = this.createDataObject(['sector','costbasis']) ,
-		sectorData = {} ,
-		pieData = [];
+		var data = this.createDataObject(['sector','costbasis']),
+		sectorData = {},
+		pieData = [],
+        d,
+        x,
+        cost;
+
 		this.sectors.forEach(function(sector) {
 			sectorData[sector] = data.filter(function(item) { return item.sector == sector })			
 		});
-		for (var d in sectorData) {
+		for (d in sectorData) {
 			if (sectorData[d] && sectorData[d].length > 1) {
-				var cost=0;
-				for (var x=0;x<sectorData[d].length;x++) {
+				cost=0;
+				for (x=0;x<sectorData[d].length;x++) {
 					cost += sectorData[d][x].costbasis;
 				}
 				sectorData[d] = [{'sector':d , 'costbasis' : cost }];
@@ -387,18 +402,29 @@ Portfolio = new Class.create({
         }
 
         var doneCallback = function() {
-            var len , i  , json , sortedDates=[];
+            var len,
+                i,
+                json,
+                sortedDates=[],
+                results,
+                url,
+                ticker,
+                date,
+                d,
+                daysToGo = undefined,
+                divYield;
+
             if (arguments && (len=arguments.length)) {
                 for (i=0 ; i<len ; i++) {
                     json = $.isArray(arguments[i]) ? arguments[i] : null;
                     json = $.isArray(json) ? json[0] : null;
                     if (typeof json === "object" && json.query && json.query.results) {
                         // we have a json object with an array of company info, cache it, and display suggestions
-                        var results = json.query.results;
+                        results = json.query.results;
                         //console.log(results);
-                        var url = $.isArray(json.query.diagnostics.url) ?  json.query.diagnostics.url[0] : json.query.diagnostics.url;
-                        var ticker = url.content.split('=')[url.content.split('=').length -1];
-                        var date = parseEarningsEstimate(results) , daysToGo = undefined , d;
+                        url = $.isArray(json.query.diagnostics.url) ?  json.query.diagnostics.url[0] : json.query.diagnostics.url;
+                        ticker = url.content.split('=')[url.content.split('=').length -1];
+                        date = parseEarningsEstimate(results);
                         if (date) {
                             date = date.trim();
                             d = Date.parse(date);
@@ -408,7 +434,7 @@ Portfolio = new Class.create({
                             sortedDates.push([ticker,d,daysToGo]);
                             sortedDates.sort(function(a, b) {return a[1] - b[1]})
                         }
-                        var divYield = parseDividendYield(results) ;
+                        divYield = parseDividendYield(results) ;
                         portfolio._myportfolio.data[ticker]['yield'] = divYield;
                     }
 
@@ -519,9 +545,14 @@ Portfolio = new Class.create({
     },
 
     priceUpdater : function() {
-        var rows = $('#folio').handsontable('countRows') ,
-        regEx , ticker , afterhours , folio , hour = Date.now().getHours();
-        for (var i=0;i<rows;i++) {
+        var rows = $('#folio').handsontable('countRows'),
+        regEx,
+        ticker,
+        afterhours,
+        folio,
+        i;
+
+        for (i=0;i<rows;i++) {
 
             afterhours = !isMarketOpen();
             ticker = $('#folio').handsontable('getDataAtCell' , i,0);
@@ -549,11 +580,4 @@ Portfolio = new Class.create({
         }
     }
 
-
-
-
-	
-	
-	
-	
 })
