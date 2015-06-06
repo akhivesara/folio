@@ -82,7 +82,7 @@ Portfolio = new Class.create({
                     that.createGainCharts(gainData,'positions', {  title:"Positions", formatter : function() {
                                                                                 var tooltip = this.x +': '+ this.y.toFixed(2) +' %';
                                                                                 if (this.point.name !== 'Overall') {
-                                                                                    tooltip += '<br><b>Gain: $'+(portfolio._myportfolio.data[this.point.name].gain).toFixed(2) + '</b></br>'
+                                                                                    tooltip += '<br><b>Gain: $'+(portfolio._myportfolio.data[this.point.name].gl).toFixed(2) + '</b></br>'
                                                                                 } else {
                                                                                     var source;
                                                                                     source = that._myportfolio;
