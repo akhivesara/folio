@@ -21,7 +21,39 @@ Portfolio = new Class.create({
 		});
 		this.createCompletedChart(this._createData(true,['symbol', 'gain'],data),'gainComplete');
 	},
-	
+
+    /**
+     *
+     * @param ticker
+     * @returns { { gl: number,
+      *             gainPercentage: number}
+       *        }
+     */
+    calculateGain : function(ticker) {
+        var data = this._myportfolio.data[ticker];
+        var totalShares = +data.shares;
+        var marketValue = +data.price * totalShares +  (+data.dividend);
+        var cost = +data.costbasis + (+data.tax);
+        var gl = marketValue - cost ;
+
+        return {
+            gain : gl,
+            gainPercentage : 100*((gl)/cost)
+        }
+    },
+
+    _extract : function(keys , source) {
+        var data = {};
+
+        keys.forEach(function(i) {
+            data[i] = source.data[i]
+        })
+
+        return {
+            primaryKeys: keys,
+            data : data
+        }
+    },
 	_onDataFetched : function(data) {
 		console.log('_onDataFetched');
 		var that=this;
@@ -32,8 +64,96 @@ Portfolio = new Class.create({
 		this.sectors = [];
 		that._myportfolio.sectors = {};
 		var count = 0;
+        var tickerCount = 0
 		var max = this._myportfolio.primaryKeys.length;
 		this._myportfolio.primaryKeys.forEach(function(ticker) {
+            scrapeTickerPrice(ticker, function(data) {
+                tickerCount++;
+                that._myportfolio.data[ticker]['price'] = data.price;
+
+                var g = that.calculateGain(ticker);
+                that._myportfolio.data[ticker]['gain'] = g.gain;
+                that._myportfolio.data[ticker]['gainPercentage'] = g.gainPercentage;
+
+                if (tickerCount >= max) {
+                    //console.log('createSectorPie');
+                    var gainData = that._createData(true,['symbol', 'gainPercentage' ],that._myportfolio, true);
+                        //portfolio._createData(true,['symbol','dividend'],undefined, true).map(function(i) { return i[0]})
+                    that.createGainCharts(gainData,'positions', {  title:"Positions", formatter : function() {
+                                                                                var tooltip = this.x +': '+ this.y.toFixed(2) +' %';
+                                                                                if (this.point.name !== 'Overall') {
+                                                                                    tooltip += '<br><b>Gain: $'+(portfolio._myportfolio.data[this.point.name].gain).toFixed(2) + '</b></br>'
+                                                                                } else {
+                                                                                    var source;
+                                                                                    source = that._myportfolio;
+                                                                                    var totalcost = portfolio._createData(true,['costbasis'],source).
+                                                                                        merge().
+                                                                                        reduce(function(a, b) {
+                                                                                            return a + b;
+                                                                                        });
+                                                                                    var totalgain = portfolio._createData(true,['gain'],source).
+                                                                                        merge().
+                                                                                        reduce(function(a, b) {
+                                                                                            return a + b;
+                                                                                        });
+                                                                                    var divROI = 100 * totalgain / totalcost;
+                                                                                    tooltip = '<b>ROI: '+divROI.toFixed(2) +' %</b>';
+                                                                                    tooltip +='<br><b>Gain: $'+(totalgain).toFixed(2) + '</b></br>';
+                                                                                    tooltip +='<br><b>Cost: $'+totalcost.toFixed(2)+ '</b></br>';
+                                                                                }
+                                                                                return tooltip;
+                                                                               } ,
+                                                                               keys : gainData.map(function(i) { return i[0]}),
+                                                                               xTitle : 'Gain',
+                                                                               yTitle : 'Percentage (%)'
+                    });
+                    var divData = that._createData(true,['symbol', 'dividend' ],that._myportfolio, true);
+                    that.createGainCharts(divData,'dividend',{  title:"Dividends", formatter : function() {
+                                                                            var div = safeLookup(that._myportfolio.data[this.point.name], 'dividend');
+                                                                            var divROI;
+                                                                            if (div) {
+                                                                                divROI = 100* div / that._myportfolio.data[this.point.name].costbasis;
+                                                                            }
+                                                                            var tooltip = '$'+this.y.toFixed(2);
+                                                                            if (this.point.name !== 'Overall') {
+                                                                                if (div) {
+                                                                                    tooltip += '<br><b>ROI %: '+divROI.toFixed(2) + '</b></br>'
+                                                                                }
+                                                                            } else {
+                                                                                var source;
+                                                                                source = that._extract(divData.map(function(i) { return i[0]}),that._myportfolio);
+                                                                                var totalcost = that._createData(true,['costbasis'],source).
+                                                                                    merge().
+                                                                                    reduce(function(a, b) {
+                                                                                    return a + b;
+                                                                                });
+                                                                                var totaldiv = that._createData(true,['dividend'],source).
+                                                                                    merge().
+                                                                                    reduce(function(a, b) {
+                                                                                    return a + b;
+                                                                                });
+                                                                                divROI = 100 * totaldiv / totalcost;
+                                                                                tooltip += '<br><b>ROI %: '+divROI.toFixed(2) + '</b></br>'
+                                                                            }
+                                                                            return tooltip;
+                                                                        },
+                                                                            keys : divData.map(function(i) { return i[0]}),
+                                                                            xTitle : 'Stocks',
+                                                                            yTitle : 'Income ($)',
+                                                                            overall : function() {
+                                                                                var source;
+                                                                                source = that._extract(divData.map(function(i) { return i[0]}),that._myportfolio);
+                                                                                var totalcost = that._createData(true,['costbasis'],source).merge();
+                                                                                var totaldiv = that._createData(true,['dividend'],source).merge();
+                                                                                var total = totaldiv.reduce(function(a, b) {
+                                                                                    return a + b;
+                                                                                });
+                                                                                return total;
+                                                                            }
+
+                    });
+                }
+            });
 			scrapeIndustryLink(ticker,function(industry , sector) {
 				count++
 				if (!sector) sector = 'Unknown';
@@ -56,7 +176,12 @@ Portfolio = new Class.create({
 		count = 0;
 		window.priceCount =0;
 		this._myportfolio.primaryKeys.forEach(function(ticker) {
-			scrapePrice(ticker,function(price,change,price_aft,change_aft) {
+			scrapeTickerPrice(ticker,function(data) {
+
+                var price = data.price;
+                var change = data.dayChange;
+                var price_aft= data.afterPrice;
+                var change_aft = data.afterChange;
 				//console.log('scrapePrice call done');
 				window.priceCount++;
 				count++;
@@ -68,10 +193,9 @@ Portfolio = new Class.create({
 				that._myportfolio.data[ticker]['gain'] = 100*((+price* +that._myportfolio.data[ticker].shares) + (+that._myportfolio.data[ticker].dividend) - that._myportfolio.data[ticker].costbasis)/that._myportfolio.data[ticker].costbasis;
 				if (window.priceCount >= max) {
                     $(document).trigger('portfolioReady');
-					console.log('createCurrentGainChart');					
-					that.createColumnChart();
-					delete window.priceCount;
-					//that.createColumnChart(that._createData(true,['symbol' , 'change']), 'dayGainColumn',true);
+					console.log('createCurrentGainChart');
+                    that.createColumnChart(that._createData(true,['symbol' , 'gainPercentage']), 'dayGainColumn',true);
+                    delete window.priceCount;
 				}
 			})
 		});
@@ -101,11 +225,15 @@ Portfolio = new Class.create({
 		  });		
 		}
 	},
-	
-	_createData : function(noHeaders, keyMap , primaryData) {
-		var tableData = [] ,
-		singleEntry = [] ,
-		primaryData = primaryData || this._myportfolio ;
+
+	// TODO change signature
+	_createData : function(noHeaders, keyMap , primaryData , excludeIfNoKey) {
+		var tableData = [],
+		singleEntry,
+        more,
+        key,
+		primaryData = primaryData || this._myportfolio;
+
 		if (!noHeaders) {
 			tableData.push(primaryData.columns);
 		}
@@ -114,7 +242,13 @@ Portfolio = new Class.create({
 			for (var more in primaryData.data[key]) {
 				if (!keyMap) {
 					singleEntry.push(primaryData.data[key][more]);					
-				} else if (keyMap.indexOf(more) !=-1) {					
+				} else if (keyMap.indexOf(more) !=-1) {
+                    if (excludeIfNoKey && (primaryData.data[key][more] === 'undefined' || primaryData.data[key][more] === '' || primaryData.data[key][more] === '0')) {
+                        if (keyMap[0] === 'symbol') {
+                            singleEntry = [];
+                        }
+                        continue;
+                    }
 					if (+primaryData.data[key][more]) {
 						singleEntry.push(+primaryData.data[key][more]);						
 					} else {
@@ -122,7 +256,9 @@ Portfolio = new Class.create({
 					}
 				}					
 			}
-			tableData.push(singleEntry);					
+            if (!excludeIfNoKey || singleEntry.length) {
+			    tableData.push(singleEntry);
+            }
 		}		
 		return tableData;
 	},
@@ -239,7 +375,7 @@ Portfolio = new Class.create({
 	
 	createColumnChart : function(data , elementId , avoidOverall ) {
 		    var chart ,
-				data = data || this._createData(true,['symbol' , 'gain']) ,
+				data = data || this._createData(true,['symbol' , 'gainPercentage']) ,
 				keys = this._myportfolio.primaryKeys ;
 				if (!avoidOverall) {
 					data.push(['Overall' , this._calculateTotalGain()]);
@@ -279,9 +415,9 @@ Portfolio = new Class.create({
 		                }
 		            },
 	                series: [{
-						name : 'Total',						
-		                data: data
-		            },
+                            name : 'Total',
+                            data: data
+                        },
 						{
 							name : 'Day',
 							data : this._createData(true,['symbol' , 'change'])
@@ -293,8 +429,62 @@ Portfolio = new Class.create({
 			keys.pop();
 		}		
 	},
-	
-	createCompletedChart : function(data , elementId , avoidOverall ) {
+
+    createGainCharts : function(data , elementId , options) {
+        options = options || {};
+
+        var chart ,
+            data = data ,
+            keys = options.keys || this._myportfolio.primaryKeys,
+            that = this,
+            title = options.title,
+            formatter = options.formatter,
+            avoidOverall = options.avoidOverall,
+            xTitle = options.xTitle,
+            yTitle = options.yTitle,
+            overall = options.overall;
+
+        if (!avoidOverall) {
+            data.push(['Overall' , typeof overall === 'function' ?  overall() : /*this._calculateTotalGain(true , this._settledmyportfolio)*/ 100]);
+            keys.push('Overall');
+        }
+        chart = new Highcharts.Chart({
+            chart: {
+                renderTo: elementId,
+                type: 'column'
+            },
+            title: {
+                text: title
+            },
+            xAxis: {
+                categories: keys
+            },
+            yAxis: {
+                title: {
+                    text: yTitle
+                }
+            },
+            tooltip: {
+                formatter: formatter
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
+            },
+            series: [{
+                    name : xTitle,
+                    data: data
+                }]
+        });
+        if (!avoidOverall) {
+            keys.pop();
+        }
+    },
+
+    //TODO use createChartGains
+    createCompletedChart : function(data , elementId , avoidOverall , title) {
 		    var chart ,
 				data = data ,
 				keys = this._settledmyportfolio.primaryKeys ;
@@ -302,13 +492,14 @@ Portfolio = new Class.create({
 					data.push(['Overall' , this._calculateTotalGain(true , this._settledmyportfolio)]);
 					keys.push('Overall');
 				}
+        try{
 		        chart = new Highcharts.Chart({
 		            chart: {
 		                renderTo: elementId || 'gainColumn',
 		                type: 'column'
 		            },
 		            title: {
-		                text: 'Closed Positions'
+		                text: title || 'Closed Positions'
 		            },
 		            xAxis: {
 		                categories: keys		                
@@ -322,7 +513,7 @@ Portfolio = new Class.create({
 		                formatter: function() {
 							var tooltip = this.x +': '+ this.y.toFixed(2) +' %';
 							if (this.point.name == 'Overall') {
-								//tooltip+= '<br><br> Gain: '+portfolio._settledmyportfolio.data[this.point.name].sellbasis - portfolio._settledmyportfolio.data[this.point.name].costbasis + '<b></br>'								
+								//tooltip+= '<br><br> Gain: '+portfolio._settledmyportfolio.data[this.point.name].sellbasis - portfolio._settledmyportfolio.data[this.point.name].costbasis + '<b></br>'
 							} else {
 								tooltip+= '<br><b>Gain: $'+(portfolio._settledmyportfolio.data[this.point.name].sellbasis - portfolio._settledmyportfolio.data[this.point.name].costbasis).toFixed(2) + '</b></br>'
 							}
@@ -342,6 +533,9 @@ Portfolio = new Class.create({
 		                data: data
 		            }]
 		        });
+        } catch (e) {
+            debugger;
+        }
 		//chart.legend.destroy();
 		if (!avoidOverall) {
 			keys.pop();
@@ -466,19 +660,23 @@ Portfolio = new Class.create({
     getPrice : function(ticker , callback , afterhours , force) {
         callback = callback || NOOP;
         var url = 'http://www.nasdaq.com/symbol/'+ticker.toLowerCase();
+
         if (afterhours) {
             url = url+'/after-hours';
         } else {
             url = url+'/real-time';
         }
+
+        //url = scrapper.buildScrapeUrl(url,'//*[@id="qwidget_lastsale"]');
+
         scrapper.scrape(url,function(results) {
             var data , sData;
-            var price = _findValue(results.div.div,"qwidget_lastsale",'id','p');
+            var price = _findValue(results.div.div,"qwidget_lastsale",'id','content');
             if (price) {
                 price = price.split('$')[1];
             }
-            var net_change = _findValue(results.div.div,"qwidget_netchange",'id','p');
-            var net_change_percent = _findValue(results.div.div,"qwidget_percent",'id','p');
+            var net_change = _findValue(results.div.div,"qwidget_netchange",'id','content');
+            var net_change_percent = _findValue(results.div.div,"qwidget_percent",'id','content');
             var dir = _findValue(results.div.div,"qwidget-Red",'class','class') ;
             if (dir) {
                 dir = -1;
@@ -513,7 +711,6 @@ Portfolio = new Class.create({
                 }
            }
             callback(data);
-            console.dir(data)
         },'//*[@id="qwidget_quote"]',force);
 
     },
@@ -529,9 +726,10 @@ Portfolio = new Class.create({
             ticker = regEx.exec(ticker)[1];
             this.getPrice(ticker , (function(rowIdx , tick) {return function(data) {
                 folio = portfolio._myportfolio.data[tick];
-                console.log('callback row ='+rowIdx);
+                //console.log('callback row ='+rowIdx);
                 if (afterhours) {
                     //data = data.afterData;
+                    console.log(tick + ' price is ='+data.price);
                     myTable.fillSlot(rowIdx,5,(+data.price).toFixed(2));
                 } else {
                     console.log(tick + ' price is ='+data.price);
