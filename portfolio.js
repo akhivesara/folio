@@ -17,7 +17,7 @@ Portfolio = new Class.create({
 		console.log('_settledComplete');
 		this._settledmyportfolio = data;
 		data.primaryKeys.forEach(function(ticker) {
-			data.data[ticker]['gain'] = 100*((data.data[ticker].sellbasis - data.data[ticker].costbasis)/data.data[ticker].costbasis);	
+			data.data[ticker]['gain'] = 100*((data.data[ticker].sellbasis - data.data[ticker].costbasis)/data.data[ticker].costbasis);
 		});
 		this.createCompletedChart(this._createData(true,['symbol', 'gain'],data),'gainComplete');
 	},
@@ -37,7 +37,7 @@ Portfolio = new Class.create({
         var gl = marketValue - cost ;
 
         return {
-            gain : gl,
+            gl : gl,
             gainPercentage : 100*((gl)/cost)
         }
     },
@@ -72,7 +72,7 @@ Portfolio = new Class.create({
                 that._myportfolio.data[ticker]['price'] = data.price;
 
                 var g = that.calculateGain(ticker);
-                that._myportfolio.data[ticker]['gain'] = g.gain;
+                that._myportfolio.data[ticker]['gl'] = g.gl;
                 that._myportfolio.data[ticker]['gainPercentage'] = g.gainPercentage;
 
                 if (tickerCount >= max) {
@@ -91,7 +91,7 @@ Portfolio = new Class.create({
                                                                                         reduce(function(a, b) {
                                                                                             return a + b;
                                                                                         });
-                                                                                    var totalgain = portfolio._createData(true,['gain'],source).
+                                                                                    var totalgain = portfolio._createData(true,['gl'],source).
                                                                                         merge().
                                                                                         reduce(function(a, b) {
                                                                                             return a + b;
