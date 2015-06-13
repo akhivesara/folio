@@ -6,6 +6,21 @@ var myTable = (function() {
             //["", "", ""]
         ];
 
+
+
+
+    var COLS = {
+        TICKER : 0,
+        PRICE : 1,
+        DAY_CHANGE : 2,
+        SHARES : 3,
+        GAIN_LOSS : 4,
+        AFTER_HOURS : 5,
+        EARNINGS_DATE : 6,
+        DIVIDEND_YIELD : 7,
+        PRICE_TARGET : 8
+    };
+
     var tableId = "#folio" ;
     return {
 
@@ -99,16 +114,16 @@ var myTable = (function() {
             primaryKeys.forEach(function(ticker) {
                 var data = folioData[ticker];
                 var u = 'http://ashishkhivesara.com/finance?s='+ticker;
-                that.fillSlot(rowIndex,0,"<a href='"+u+"' target='_blank'>"+ticker+"</a>");
-                that.fillSlot(rowIndex,1,+data.quote);
-                that.fillSlot(rowIndex,2,(+data.change).toFixed(2));
-                that.fillSlot(rowIndex,3,+data.shares);
+                that.fillSlot(rowIndex,COLS.TICKER,"<a href='"+u+"' target='_blank'>"+ticker+"</a>");
+                that.fillSlot(rowIndex,COLS.PRICE,+data.quote);
+                that.fillSlot(rowIndex,COLS.DAY_CHANGE,(+data.change).toFixed(2));
+                that.fillSlot(rowIndex,COLS.SHARES,+data.shares);
                 //that.fillSlot(rowIndex,4,(+data.change).toFixed(2));
-                that.fillSlot(rowIndex,4,(+data.gain).toFixed(2));
-                that.fillSlot(rowIndex,5,(+data.aft_quote).toFixed(2));
-                that.fillSlot(rowIndex,6,data.Earnings);
-                that.fillSlot(rowIndex,7,data.yield);
-                that.fillSlot(rowIndex,8,data.pricetarget);
+                that.fillSlot(rowIndex,COLS.GAIN_LOSS,(+data.gain).toFixed(2));
+                that.fillSlot(rowIndex,COLS.AFTER_HOURS,(+data.aft_quote).toFixed(2));
+                that.fillSlot(rowIndex,COLS.EARNINGS_DATE,data.Earnings);
+                that.fillSlot(rowIndex,COLS.DIVIDEND_YIELD,data.yield);
+                that.fillSlot(rowIndex,COLS.PRICE_TARGET,data.pricetarget);
                 rowIndex++;
             })
 
@@ -137,17 +152,17 @@ var myTable = (function() {
                 td.style.background = '#EEE';
             }
 
-            if (col === 1 || col === 3 || col === 6 || col === 7) {
+            if (col === COLS.PRICE || col === COLS.SHARES || col === COLS.EARNINGS_DATE || col === COLS.DIVIDEND_YIELD) {
                 Handsontable.TextCell.renderer.apply(this, arguments);
                 return;
             }
-            if (col === 0) {
+            if (col === COLS.TICKER) {
                 td.style['font-weight'] = 'bold';
                 td.style['font-style'] = 'italic';
                 Handsontable.TextCell.renderer.apply(this, arguments);
                 return;
             }
-            if (col === 5) {
+            if (col === COLS.AFTER_HOURS) {
 
                 var lastQuote = _table.handsontable('getCell', row, 1).textContent //|| _table.handsontable('getData')[row][1];
                 if (value < lastQuote) {
@@ -161,7 +176,7 @@ var myTable = (function() {
                 return;
             }
 
-            if (col === 8) {
+            if (col === COLS.PRICE_TARGET) {
                 var lastQuote = _table.handsontable('getCell', row, 1).textContent  //|| _table.handsontable('getData')[row][1];
                 var afterQuote = _table.handsontable('getCell', row, 5).textContent //|| _table.handsontable('getData')[row][5];
                 if (value) {
