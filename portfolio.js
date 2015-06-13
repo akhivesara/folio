@@ -571,12 +571,12 @@ Portfolio = new Class.create({
 
         getEstimates.call(this);
         var parseEarningsEstimate = function(results) {
-            var date = _findValue(results.div.table[0].tr , "Next Earnings Date" , "th.p" , "td.p.content");
+            var date = _findValue(safeLookup(results, 'div.table.0.tbody.tr') , "Earnings Date" , "th.content" , "td.content");
             return date;
         }
 
         var parseDividendYield = function(results) {
-            var dy = _findValue(results.div.table[1].tr , "Div & Yield" , "th.p" , "td.p");
+            var dy = _findValue(safeLookup(results, 'div.table.1.tbody.tr') , "Div & Yield" , "th.content" , "td.content");
             return dy ;
         }
 
@@ -596,9 +596,24 @@ Portfolio = new Class.create({
                         if (date) {
                             date = date.trim();
                             d = Date.parse(date);
-                            daysToGo = (d - Date.today())/(24*60*60*1000);
-                            //console.log(ticker + '\'s Earning\'s Date = '+date + ' Days to go = '+that.getDaysForEarnings(date));
-                            portfolio._myportfolio.data[ticker]['Earnings'] = date;
+
+                            // is range?
+                            if (!d && date.indexOf('-') !== -1) {
+                                // pick earliest
+                                date = date.split('-')[0];
+                                date = date.trim();
+                                d = Date.parse(date);
+                            }
+
+                            if (d) {
+                                daysToGo = that.getDaysForEarnings(date);
+                            }
+                            console.log(ticker + '\'s Earning\'s Date = '+date + ' Days to go = '+daysToGo);
+
+                            if (d) {
+                                d = d.toString('d-MMM-yy');
+                            }
+                            portfolio._myportfolio.data[ticker]['Earnings'] = d;
                             sortedDates.push([ticker,d,daysToGo]);
                             sortedDates.sort(function(a, b) {return a[1] - b[1]})
                         }
@@ -609,7 +624,9 @@ Portfolio = new Class.create({
                 }
                 //console.log(sortedDates);
                 sortedDates.forEach(function(t) {
+                   if (t[1]) {
                     console.log(t[0] + '\'s Earning\'s Date = '+t[1].toString('d-MMM-yy') + ' Days to go = '+t[2]);
+                   }
                 })
                 callback();
             }
