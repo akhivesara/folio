@@ -383,7 +383,7 @@ Portfolio = new Class.create({
 				}
 		        chart = new Highcharts.Chart({
 		            chart: {
-		                renderTo: elementId || 'gainColumn',
+		                renderTo: elementId,
 		                type: 'column'
 		            },
 		            title: {
@@ -495,7 +495,7 @@ Portfolio = new Class.create({
         try{
 		        chart = new Highcharts.Chart({
 		            chart: {
-		                renderTo: elementId || 'gainColumn',
+		                renderTo: elementId,
 		                type: 'column'
 		            },
 		            title: {
