@@ -7,27 +7,27 @@
     <meta names="apple-mobile-web-app-status-bar-style" content="black" />
 	<meta name="format-detection" content="telephone=no" />
     <title>Portfolio Analyzer</title>
-    <link rel="stylesheet" type="text/css" href="portfolio.css" media="screen" />
-	<link rel="stylesheet" media="screen" href="lib/jquery.handsontable.full.css">
+    <link rel="stylesheet" type="text/css" href="css/portfolio.css" media="screen" />
+	<link rel="stylesheet" media="screen" href="lib/css/jquery.handsontable.full.css">
 </head>
 
 <body style="background:#333">
-<script src="lib/UrlParams.js"></script>
+<script src="js/utils/UrlParams.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-<script src="lib/Class.js"></script>
-<script src="lib/yqlscrapper.js"></script>
-<script src="lib/scrapper.js"></script>
-<script src="lib/gdocscrapper.js"></script>
+<script src="js/utils/Class.js"></script>
+<script src="js/utils/yqlscrapper.js"></script>
+<script src="js/utils/scrapper.js"></script>
+<script src="js/utils/gdocscrapper.js"></script>
 <script src="lib/highcharts.js"></script>
 <script src="lib/jquery.handsontable.full.js"></script>
-<script src="util.js"></script>
-<script src="lib/news.js"></script>
+<script src="js/utils/util.js"></script>
+<script src="js/utils/news.js"></script>
 <script src="lib/date.js"></script>
 <script src="lib/amplify.js"></script>
-<script src="portfolio.js"></script>
-<script src="table.js"></script>
+<script src="js/portfolio.js"></script>
+<script src="js/table.js"></script>
 <script src="lib/jquery.handsontable.full.js"></script>
-
+<script src="js/index.js"></script>
 <div id='content'>
         <button xid='Update' onclick='updater()' class="btn">Update</button>
 		<button xid='Reload' onclick='refresh()' class='btn'>Reload</button>
@@ -40,25 +40,6 @@
 		<div id='sectorPie' style='margin-bottom:50px'></div>
 		<div id='gainComplete' style='margin-bottom:50px'></div>
 </div>
-
-<script>
-$(document).ready(function() {
-    scrapper = new Scrapper();
-	portfolio = new Portfolio();
-	hour = new Date().getHours();
-	news = new util.News();
-});	
-refresh = function() {
-	amplify.clear();
-	window.location = location.href;
-}
-
-updater = function() {
-    if (portfolio) {
-        portfolio.priceUpdater();
-    }
-}
-</script>
 
 </body>
 </html>
