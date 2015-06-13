@@ -73,31 +73,31 @@ var myTable = (function() {
                 ],
                 colHeaders: function (col) {
                     switch (col) {
-                        case 0:
+                        case COLS.TICKER:
                             return "<b class='columnSorting'>Ticker</b>";
-                        case 1:
+                        case COLS.PRICE:
                             return "<b>Price</b>";
-                        case 2:
+                        case COLS.DAY_CHANGE:
                             return "<b>%</b>";
-                        case 3:
+                        case COLS.SHARES:
                             return "<b>Shares</b>";
-                        case 4:
+                        case COLS.GAIN_LOSS:
                             return "<b>Gain %</b>";
-                        case 5:
+                        case COLS.AFTER_HOURS:
                             return "<b>After Hour\'s</b>";
-                        case 6:
+                        case COLS.EARNINGS_DATE:
                             return "<b>Earnings</b>";
-                        case 7:
+                        case COLS.DIVIDEND_YIELD:
                             return "<b>Dividend</b>";
-                        case 8:
+                        case COLS.PRICE_TARGET:
                             return "<b>Price Target</b>";
                     }
                 },
                 cells: function (row, col, prop) {
                     var cellProperties = {};
-                    if (col === 0 || _table.handsontable('getData')[row][col] === 'readOnly') {
+                    if (col === COLS.TICKER || _table.handsontable('getData')[row][col] === 'readOnly') {
                         cellProperties.readOnly = true; //make cell read-only if it is first row or the text reads 'readOnly'
-                        if (col === 0) {
+                        if (col === COLS.TICKER) {
                             cellProperties.type = {
                                 renderer: that.tickerRenderer
                             }
