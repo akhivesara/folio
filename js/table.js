@@ -1,3 +1,5 @@
+var Handsontable = require('../lib/jquery.handsontable.full');
+
 var myTable = (function() {
 
     var	_table = null ,
@@ -198,3 +200,5 @@ var myTable = (function() {
         }
     }
 })();
+
+module.exports = myTable;

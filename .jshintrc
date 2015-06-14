@@ -1,0 +1,85 @@
+{
+    // Settings
+    "passfail"                                                : false,  // Stop on first error.
+    "maxerr"                                                  : 100,    // Maximum errors before stopping.
+
+
+    // Predefined globals that JSHint will ignore.
+    "browser"                                                 : true,   // Standard browser globals e.g. `window`, `document`.
+
+    "node"                                                    : true,
+    "rhino"                                                   : false,
+    "couch"                                                   : false,
+    "wsh"                                                     : false,   // Windows Scripting Host.
+
+    "jquery"                                                  : false,
+    "prototypejs"                                             : false,
+    "mootools"                                                : false,
+    "dojo"                                                    : false,
+    "nonstandard"                                             : false,
+    "worker"                                                  : false,
+    "wsh"                                                     : false,
+    "yui"                                                     : false,
+
+    "predef" : [
+        "mdx"
+        // unit test
+//        "describe",
+//        "it",
+//        "beforeEach",
+//        "afterEach"
+    ],
+
+
+    // Development.
+    "debug"                                                   : true,  // Allow debugger statements e.g. browser breakpoints.
+    "devel"                                                   : true,  // Allow development statements e.g. `console.log();`.
+
+
+    // EcmaScript 5.
+    "esnext"                                                  : false, // This option tells JSHint that your code uses ES.next specific features such as const.
+    "strict"                                                  : false, // Require `use strict` pragma in every file.
+    "globalstrict"                                            : false, // Allow global "use strict" (also enables 'strict').
+
+
+    // The Good Parts.
+    "asi"                                                     : false, // This option suppresses warnings about missing semicolons.
+    "laxbreak"                                                : true,  // Tolerate unsafe line breaks e.g. `return [\n] x` without semicolons.
+    "laxcomma"                                                : true,  // Tolerate comma first
+    "bitwise"                                                 : false,  // Prohibit bitwise operators (&, |, ^, etc.).
+    "boss"                                                    : false, // Tolerate assignments inside if, for & while. Usually conditions & loops are for comparison, not assignments.
+    "curly"                                                   : true,  // Require {} for every new block or scope.
+    "eqeqeq"                                                  : true,  // Require triple equals i.e. `===`.
+    "eqnull"                                                  : false, // Tolerate use of `== null`.
+    "evil"                                                    : false, // Tolerate use of `eval`.
+    "expr"                                                    : false, // Tolerate `ExpressionStatement` as Programs.
+    "forin"                                                   : true,  // Requires all 'for in' loop to filter object's items
+    "immed"                                                   : true,  // Require immediate invocations to be wrapped in parens e.g. `( function(){}() );`
+    "latedef"                                                 : true,  // Prohibit variable use before definition.
+    "loopfunc"                                                : false, // Allow functions to be defined within loops.
+    "noarg"                                                   : true,  // Prohibit use of `arguments.caller` and `arguments.callee`.
+    "regexp"                                                  : true,  // Prohibit `.` and `[^...]` in regular expressions.
+    "regexdash"                                               : false, // Tolerate unescaped last dash i.e. `[-...]`.
+    "scripturl"                                               : true,  // Tolerate script-targeted URLs.
+    "shadow"                                                  : false, // Allows re-define variables later in code e.g. `var x=1; x=2;`.
+    "supernew"                                                : false, // Tolerate `new function () { ... };` and `new Object;`.
+    "undef"                                                   : true,  // Require all non-global variables be declared before they are used.
+    "smarttabs"                                               : false , // This option suppersses warnings about mixed tabs and spaces when the latter are used for alignment only.
+
+    // Personal styling preferences.
+    "camelcase"                                               : false, // This option allows you to force all variable names to use either camelCase style or UPPER_CASE with underscores.
+    "newcap"                                                  : false, // Require capitalization of all constructor functions e.g. `new F()`.
+                                                                       // Since React components are capitalized (by convention) and do not require
+                                                                       // the 'new' keyword to instantiate, ignore this rule.
+    "noempty"                                                 : true,  // Prohibit use of empty blocks.
+    "nonew"                                                   : true,  // Prohibit use of constructors for side-effects.
+    "nomen"                                                   : false, // Prohibit use of initial or trailing underbars in names.
+    "onevar"                                                  : false,  // Allow only one `var` statement per function.
+    "plusplus"                                                : false, // Prohibit use of `++` & `--`.
+    "sub"                                                     : false, // Tolerate all forms of subscript notation besides dot notation e.g. `dict['key']` instead of `dict.key`.
+    "trailing"                                                : false,  // Prohibit trailing whitespaces.
+    "white"                                                   : false,  // Check against strict whitespace and indentation rules.
+    "quotmark"                                                : false,  // This option enforces the consistency of quotation marks used throughout your code. true                                             : enable consistency,  single : require single quotes double : require double quotes
+    "unused"                                                  : false,  // This options warns when you define and never use your variables
+    "funcscope"                                               : false  // This option suppresses warnings about declaring variables inside of control structures while accessing them later from the outside.
+}

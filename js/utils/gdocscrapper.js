@@ -1,3 +1,7 @@
+require('./Class');
+require('./UrlParams');
+var amplify = require('../../lib/amplify');
+
 GoogleScrapper = new Class.create({
 	
 	baseUrl : 'https://spreadsheets.google.com/feeds/list/0AvQ4VSFhLa1bdF84LThaN1k5aV9uTkpodFZFOFJlcEE/1/public/values?alt=json-in-script&callback=listEntries',

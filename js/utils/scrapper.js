@@ -1,3 +1,6 @@
+require('./Class');
+var yqlScrapperCall = require('./yqlscrapper');
+
 Scrapper = new Class.create({
 
     baseUrl : "http://query.yahooapis.com/v1/public/yql?format=json&diagnostics=true&" ,

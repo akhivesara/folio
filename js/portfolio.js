@@ -1,3 +1,16 @@
+require('./utils/Class');
+var safeLookup = require('./utils/safeLookup');
+var findValue = require('./utils/findValue');
+var scrapeTickerPrice = require('./utils/scrapeTickerPrice');
+var scrapeIndustryLink = require('./utils/scrapeIndustryLink');
+require('./utils/gdocscrapper');
+//require('./utils/yqlscrapper');
+require('../lib/jQuery');
+require('../lib/highcharts');
+require('./utils/util');
+var myTable = require('./table');
+require('../lib/date');
+
 Portfolio = new Class.create({
 
 	//TODO: make the url configurable
@@ -10,7 +23,6 @@ Portfolio = new Class.create({
 		var google = new GoogleScrapper();
 		google.fetch(null,$.proxy(this._onDataFetched, this)); 		
 		google.fetch(google.settledUrl,$.proxy(this._settledComplete, this));
-
 	},
 	
 	_settledComplete : function(data) {
@@ -571,12 +583,12 @@ Portfolio = new Class.create({
 
         getEstimates.call(this);
         var parseEarningsEstimate = function(results) {
-            var date = _findValue(safeLookup(results, 'div.table.0.tbody.tr') , "Earnings Date" , "th.content" , "td.content");
+            var date = findValue(safeLookup(results, 'div.table.0.tbody.tr') , "Earnings Date" , "th.content" , "td.content");
             return date;
         }
 
         var parseDividendYield = function(results) {
-            var dy = _findValue(safeLookup(results, 'div.table.1.tbody.tr') , "Div & Yield" , "th.content" , "td.content");
+            var dy = findValue(safeLookup(results, 'div.table.1.tbody.tr') , "Div & Yield" , "th.content" , "td.content");
             return dy ;
         }
 
@@ -688,13 +700,13 @@ Portfolio = new Class.create({
 
         scrapper.scrape(url,function(results) {
             var data , sData;
-            var price = _findValue(results.div.div,"qwidget_lastsale",'id','content');
+            var price = findValue(results.div.div,"qwidget_lastsale",'id','content');
             if (price) {
                 price = price.split('$')[1];
             }
-            var net_change = _findValue(results.div.div,"qwidget_netchange",'id','content');
-            var net_change_percent = _findValue(results.div.div,"qwidget_percent",'id','content');
-            var dir = _findValue(results.div.div,"qwidget-Red",'class','class') ;
+            var net_change = findValue(results.div.div,"qwidget_netchange",'id','content');
+            var net_change_percent = findValue(results.div.div,"qwidget_percent",'id','content');
+            var dir = findValue(results.div.div,"qwidget-Red",'class','class') ;
             if (dir) {
                 dir = -1;
                 net_change = net_change * dir;

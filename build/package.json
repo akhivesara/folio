@@ -1,0 +1,41 @@
+{
+  "name": "FOLIO",
+  "version": "1.0.0",
+  "description": "Portfolio",
+  "scripts": {
+    "prestart": "npm i",
+    "start": "gulp start"
+  },
+  "devDependencies": {
+    "browserify": "^8.0.2",
+    "bundle-collapser": "^1.1.1",
+    "commander": "^2.3.0",
+    "del": "^0.1.1",
+    "event-stream": "^3.1.7",
+    "glob": "^4.0.5",
+    "gulp": "~3.7.0",
+    "gulp-concat": "^2.4.1",
+    "gulp-concat-css": "^2.2.0",
+    "gulp-debug": "^2.0.1",
+    "gulp-if": "~1.2.1",
+    "gulp-jshint": "1.5.1",
+    "gulp-minify-css": "^0.3.7",
+    "gulp-plumber": "^0.6.2",
+    "gulp-print": "~1.1.0",
+    "gulp-react": "^1.0.0",
+    "gulp-rename": "~1.2.0",
+    "gulp-sass": "^2.0.0",
+    "gulp-ruby-sass": "^0.7.1",
+    "gulp-shell": "^0.2.8",
+    "gulp-streamify": "0.0.5",
+    "gulp-uglify": "^0.3.1",
+    "jshint-stylish": "^0.2.0",
+    "lodash": "^2.4.1",
+    "madge": "^0.3.1",
+    "reactify": "~0.13.1",
+    "rsyncwrapper": "^0.4.0",
+    "run-sequence": "~0.3.6",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^0.1.1"
+  }
+}

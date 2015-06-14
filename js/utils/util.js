@@ -1,21 +1,21 @@
-util = {};
 
-function safeLookup (base, path, defaultValue) {
+//function safeLookup (base, path, defaultValue) {
+//
+//	if (typeof path === 'string') {
+//		path = path.split('.');
+//	}
+//
+//	for (var i = 0, l = path.length; i < l; i++) {
+//		if (typeof base !== 'undefined' && base !== null && (base = base[path[i]])) {
+//		} else {
+//			return defaultValue;
+//		}
+//	}
+//	return base;
+//}
+(function(scope){
 
-	if (typeof path === 'string') {
-		path = path.split('.');
-	}
-
-	for (var i = 0, l = path.length; i < l; i++) {
-		if (typeof base !== 'undefined' && base !== null && (base = base[path[i]])) {
-		} else {
-			return defaultValue;
-		}
-	}
-	return base;
-}
-
-function isArray (obj) {
+scope.isArray = function isArray (obj) {
    if ( obj && obj.constructor.toString().indexOf("Array") != -1)
       return true;
    else {
@@ -23,7 +23,7 @@ function isArray (obj) {
    }
 }
 
-function isMarketOpen() {
+scope.isMarketOpen = function isMarketOpen() {
     var now = Date.now() ,
         hour = now.getHours() ,
         day = now.getDayName();
@@ -39,7 +39,7 @@ Array.prototype.merge = function() {
     return results;
 };
 
-function strip_tags(input, allowed) {
+scope.strip_tags = function strip_tags(input, allowed) {
     // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
     allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
     var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
@@ -64,4 +64,6 @@ Array.prototype.sum = function() {
 	return ret;
 };
 
-NOOP = function() {}
+scope.NOOP = function() {};
+
+})(window);

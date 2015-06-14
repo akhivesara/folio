@@ -1,4 +1,8 @@
-util.News = new Class.create({
+require('./Class');
+require('../../lib/jQuery');
+require('./util')
+
+var News = new Class.create({
 	
 	init : function() {
 		this.base = 'http://api.feedzilla.com/v1/';
@@ -198,3 +202,5 @@ util.News = new Class.create({
 	}
 	
 });
+
+module.exports = News;

@@ -1,8 +1,13 @@
+require('../lib/jQuery');
+require('../js/utils/scrapper');
+require('../js/portfolio');
+var News = require('../js/utils/news');
+
 $(document).ready(function() {
     scrapper = new Scrapper();
     portfolio = new Portfolio();
     hour = new Date().getHours();
-    news = new util.News();
+    news = new News();
 });
 refresh = function() {
     amplify.clear();

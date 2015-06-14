@@ -1,0 +1,7 @@
+{
+    "SRC_DIR": "../",
+    "OUTPUT_DIR": "../dist/",
+    "OUTPUT_SCRIPT_FILENAME": "index.js",
+    "TARGET_DEBUG": "debug",
+    "TARGET_RELEASE": "release"
+}
