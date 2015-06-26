@@ -1,4 +1,4 @@
-1. Introduce Build System
-2. Minify resources
+1. Introduce Build System - done
+2. Minify resources - done
 3. Refactor to use rx
 4. Refactor using React views
