@@ -1,4 +1,5 @@
 require('../lib/jQuery');
+var amplify = require('../lib/amplify');
 require('../js/utils/scrapper');
 require('../js/portfolio');
 var News = require('../js/utils/news');
